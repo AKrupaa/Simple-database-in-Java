@@ -18,6 +18,16 @@ public class Database {
 
     public Database() {
         studensMap = new TreeMap<>();
+        Student student = new Student("firstName", "surName", "address", 10, Gender.M, 1);
+        Student student1 = new Student("firstName", "surName", "address", 10, Gender.M, 2);
+        Student student2 = new Student("firstName", "surName", "address", 10, Gender.M, 3);
+        Student student3 = new Student("firstName", "surName", "address", 10, Gender.M, 4);
+        Student student4 = new Student("firstName", "surName", "address", 10, Gender.M, 5);
+        studensMap.put(student.getIndexNumber(), student);
+        studensMap.put(student1.getIndexNumber(), student1);
+        studensMap.put(student2.getIndexNumber(), student2);
+        studensMap.put(student3.getIndexNumber(), student3);
+        studensMap.put(student4.getIndexNumber(), student4);
     }
 
     public void Select() {

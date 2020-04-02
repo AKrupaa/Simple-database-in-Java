@@ -48,7 +48,7 @@ public class Database {
         return this.studensMap;
     }
 
-    public void Update() {
+    public Map<Integer, Student> Update() {
 
         Integer inputedIndexNumber;
         Student student = new Student();
@@ -59,40 +59,153 @@ public class Database {
         // poprawne wyrazenie okreslajace indeks
         inputedIndexNumber = student.getIndexNumber();
 
-        // wyszukiwanie takiego studenta w bazie danych
-        Set<Integer> studentsKeys = this.studensMap.keySet();
-        for (Integer studentKey : studentsKeys) {
-            System.out.println(studentKey);
+        // nie znaleziono
+        if (!findStudentByIndexNumber(inputedIndexNumber))
+            return this.studensMap;
 
-            // jezeli znajde taki klucz w mojej bazie danych rowny numerowi indeksu to:
-            if (studentKey == inputedIndexNumber) {
-                // student jest przypisywany do zawartosci z bazdy danych
-                student = studensMap.get(inputedIndexNumber);
-                System.out.println("Znaleziono studenta!");
-                System.out.println("Wybierz, którą ");
+        System.out.println("Znaleziono studenta!");
+        // ~~~~~ znaleziono studenta ~~~~~
 
-                // zakladam ze zmieniam jego imie
-                // student.setFirstName();
+        // student jest przypisywany do zawartosci z bazy danych
+        student = studensMap.get(inputedIndexNumber);
 
-                // // student jest wkladany na miejsce starego studenta;
-                // this.studensMap.put(inputedIndexNumber, student);
+        // przedstawienie opcji oraz wybranie
+        AvailableStudentData availableStudentData = selectingAvailableOption();
+        // wykonanie wybranej opcji, czyli jezeli zostal wybrany edytuj indeks ->
+        // edytuje indeks
+        // zwraca akutalny poprawny indeks
+        inputedIndexNumber = doSelectedOption(availableStudentData, inputedIndexNumber, student);
 
-                // // wypisuje studenta aby sprawdzic poprawnosc danych
+        // Informacje znajdujące się w bazie danych są aktualizowane nowymi wartościami
+        this.studensMap.replace(inputedIndexNumber, studensMap.get(inputedIndexNumber), student);
 
-                // System.out.println(student.getFirstName());
-            }
+        testowanie(studensMap);
 
-        }
+        return this.studensMap;
+    }
 
-        System.out.println();
-        System.out.println();
-        System.out.println();
-        System.out.println();
-
+    private void testowanie(Map<Integer, Student> map) {
         // wypiszmy kolekcje by zobaczyc czy rzeczywiscie zostala podmieniona
-        Set<Entry<Integer, Student>> entrySet = studensMap.entrySet();
+        Set<Entry<Integer, Student>> entrySet = map.entrySet();
         for (Entry<Integer, Student> entry : entrySet) {
-            System.out.println(entry.getKey().toString() + " : " + entry.getValue().getFirstName());
+            System.out.println(entry.getKey().toString() + " : " + entry.getValue().getIndexNumber());
         }
+    }
+
+    private Map<Integer, Student> replaceTheKeys(Integer oldKey, Integer newKey, Map<Integer, Student> map) {
+        // sprawdz czy istnieje już taki klucz (DUPLIKAT)
+        if (isDuplicated(oldKey, newKey))
+            return map;
+
+        // nie jest zduplikowany
+        // wez wartosc z bazy danych
+        // usun caly wierz
+        Student value = map.remove(oldKey);
+        if (value == null)
+            System.out.println("Numer indeksu nie posiada powiązanego z nim informacji o studencie!");
+
+        // wstaw nowy klucz i starą wartość
+        map.put(newKey, value);
+        // zwroc mape
+        return map;
+    }
+
+    private boolean findStudentByIndexNumber(Integer index) {
+        Set<Integer> studentsKeys = this.studensMap.keySet();
+
+        // wyszukiwanie studenta o podanym numerze indeksu w bazie danych
+        for (Integer studentKey : studentsKeys) {
+            // jeżeli znajdzie to zwracamy indeks
+            // w innym wypadku rzucamy wyjatek i papa
+            if (studentKey == index)
+                break;
+            else {
+                // nie znaleziono
+                System.out.println("Nie znaleziono studenta o podanym numerze indeksu " + index);
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private AvailableStudentData selectingAvailableOption() {
+        System.out.println("Wybierz opcję, którą chciałbyś edytować: ");
+        System.out.println("Wpisz 'imie', aby zmienić imię studenta");
+        System.out.println("Wpisz 'nazwisko', aby zmienić nazwisko studenta");
+        System.out.println("Wpisz 'adres', aby zmienić adres zamieszkania studenta");
+        System.out.println("Wpisz 'wiek', aby zmienić wiek studenta");
+        System.out.println("Wpisz 'plec', aby zmienić plec studenta");
+        System.out.println("Wpisz 'indeks', aby zmienić indeks studenta");
+
+        // sprawdzam czy dobrze wpisano wartość dot. edycji danych
+        AvailableStudentData availableStudentData = AvailableStudentData.unknow;
+        try {
+            availableStudentData = AvailableStudentData.valueOf(scanner.nextLine());
+        } catch (IllegalArgumentException e) {
+            System.out.println(e.getMessage());
+            System.out.println("Wprowadzono niepoprawne dane");
+            System.out.println("Spróbuj ponownie!");
+        }
+        return availableStudentData;
+    }
+
+    private Integer doSelectedOption(AvailableStudentData availableStudentData, Integer inputedIndexNumber,
+            Student student) {
+        switch (availableStudentData) {
+            case indeks:
+                // ustaw nowy indeks
+                student.setIndexNumber();
+                // zamien klucze, wartosc pozostaw nie zmieniona
+                studensMap = replaceTheKeys(inputedIndexNumber, student.getIndexNumber(), studensMap);
+                // podmieniliśmy, ten który był wzorcem -> zamień - nie istniejący student na
+                // nic nam się nie przyda
+                inputedIndexNumber = student.getIndexNumber();
+                break;
+            case adres:
+                student.setAddress();
+                break;
+            case imie:
+                student.setFirstName();
+                break;
+            case nazwisko:
+                student.setSurName();
+                break;
+            case plec:
+                student.setGender();
+                break;
+            case wiek:
+                student.setAge();
+                break;
+            case unknow:
+            default:
+                System.out.print("Niemożliwe, ale jednak coś napiszę. Kontunuowanie...");
+                break;
+        }
+
+        return inputedIndexNumber;
+    }
+
+    private boolean isDuplicated(Integer oldKey, Integer newKey) {
+        int counter = 0;
+        Set<Integer> studentsKeys = this.studensMap.keySet();
+
+        // przypisanie do siebie samego?
+        if (oldKey == newKey) {
+            System.out.println("Stary indeks jest taki sam co nowy");
+            return true;
+        }
+
+        // wyszukiwanie studenta o podanym numerze indeksu w bazie danych
+        for (Integer studentKey : studentsKeys) {
+            if (studentKey == newKey)
+                counter++;
+        }
+
+        // jest duplikat
+        if (counter > 1)
+            return true;
+
+        // nie ma duplikatu
+        return false;
     }
 }

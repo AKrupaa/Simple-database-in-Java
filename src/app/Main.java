@@ -15,17 +15,16 @@ Przyklad zastosowania przygotowanej biblioteki jest dowolny, np. kartoteka ksiaz
 
 */
 
-import java.util.Scanner;
 
 public class Main {
     public static void main(String[] args) {
-        Student student = new Student();
+    
+        Database database = new Database();
+        database.Insert();
+        database.Update();
 
-        Scanner scanner = new Scanner(System.in);
-        student.setIndexNumber();
-         
+        // dMap = database.Insert(dMap);
+
         System.out.println("Hello World");
-
-
     }
 }

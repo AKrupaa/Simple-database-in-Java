@@ -13,41 +13,94 @@ public class ZbiorTabel {
         this.zbiorTabel = new TreeMap<>();
     }
 
-    public void select(String nazwaKolumny, String nazwaTabeli) {
+
+    public Map<String, Tabela> insert(String nazwaTabeli) throws Exception {
         boolean istniejeTabela = czyIstniejeTabela(nazwaTabeli);
         if (!istniejeTabela) {
-            System.out.println("Tabela o nazwie: " + nazwaTabeli + " nie istnieje!");
+            wypiszWszystkieDostepneNazwyTabel();
+            throw new Exception("Tabela o nazwie: " + nazwaTabeli + " nie istnieje!");
         }
 
-        // istnieje
-        Tabela tabela = new Tabela();
-
-    }
-
-    public Map<String, Tabela> zmienNazweTabeli(String staraNazwa, String nowaNazwa) {
-        boolean istniejeTabela = czyIstniejeTabela(staraNazwa);
-        if (!istniejeTabela) {
-            System.out.println("Tabela " + staraNazwa + " nie istnieje");
-            return this.zbiorTabel;
+        if(zbiorTabel.get(nazwaTabeli) == null) {
+            wypiszWszystkieDostepneNazwyTabel();
+            throw new Exception("Tabela o nazwie: " + nazwaTabeli + " nie posiada kolumn!");
         }
 
-        // istnieje
         Tabela tabela = new Tabela();
-        tabela = this.zbiorTabel.get(staraNazwa);
+        tabela = zbiorTabel.get(nazwaTabeli);
+        tabela.wypiszWszystkieKolumnyWrazZZawaroscia();
 
-        this.zbiorTabel.remove(staraNazwa);
-        this.zbiorTabel.put(nowaNazwa, tabela);
+        System.out.println("Wprowadz nazwe tabeli aby dodac wartosci");
+        String decyzja = scanner.nextLine();
+        boolean czyIstniejeKolumna = tabela.znajdzKolumne(decyzja);
+
+        if(!czyIstniejeKolumna){
+            throw new Exception("Nie istnieje taka tabela");
+        }
+
+        while(true) {
+            System.out.println("Wprowadz wartosc ");
+            String wartosc = scanner.nextLine();
+            tabela.dodajWartoscDoKolumny(decyzja, wartosc);
+
+            System.out.println("Wprowadzic kolejna wartosc? 'tak' 'nie'");
+
+            String wprowadzic = scanner.nextLine();
+            if (wprowadzic.compareTo("tak") == 0){
+                continue;
+            }
+            if (wprowadzic.compareTo("nie") == 0)
+                break;
+        }
+
+        this.zbiorTabel.put(nazwaTabeli, tabela);
 
         return this.zbiorTabel;
     }
 
+    public void select(String nazwaTabeli) throws Exception {
+        boolean istniejeTabela = czyIstniejeTabela(nazwaTabeli);
+        if (!istniejeTabela) {
+            wypiszWszystkieDostepneNazwyTabel();
+            throw new Exception("Tabela o nazwie: " + nazwaTabeli + " nie istnieje!");
+        }
+
+        if(zbiorTabel.get(nazwaTabeli) == null) {
+            wypiszWszystkieDostepneNazwyTabel();
+            throw new Exception("Tabela o nazwie: " + nazwaTabeli + " nie posiada kolumn!");
+        }
+        // istnieje
+        Tabela tabela = new Tabela();
+        tabela = zbiorTabel.get(nazwaTabeli);
+        
+        System.out.println("Wypisać wszystkie kolumny? 'k' Wypisać cala zawartosc? 'z'");
+        String decyzja = scanner.nextLine();
+        if (decyzja.compareTo("k") == 0){
+            tabela.wypiszWszystkieKolumny();
+        }
+        if (decyzja.compareTo("z") == 0)
+            tabela.wypiszWszystkieKolumnyWrazZZawaroscia();
+
+        if(decyzja.compareTo("k") != 0 || decyzja.compareTo("z") != 0) {
+            System.out.println("Nie podjeto zadnych dzialan");
+        }
+    }
+
     public Map<String, Tabela> delete(String nazwaTabeli) {
+        // The DELETE statement is used to delete existing records in a table.
         boolean istniejeTabela = czyIstniejeTabela(nazwaTabeli);
         if (!istniejeTabela)
             return this.zbiorTabel;
-
         // istnieje
-        this.zbiorTabel.remove(nazwaTabeli);
+        System.out.println("Czy usunac cala tabele? Wpisz 'tak' lub 'nie' jezeli chcesz zrezygnowac.");
+        String decyzja = scanner.nextLine();
+        if (decyzja.compareTo("tak") == 0){
+            this.zbiorTabel.remove(nazwaTabeli);
+            System.out.println("Usunieto tabele: " + nazwaTabeli);
+        }
+        if (decyzja.compareTo("nie") == 0)
+            System.out.println("Zrezygnowales");
+
         return this.zbiorTabel;
     }
 
@@ -76,6 +129,23 @@ public class ZbiorTabel {
         }
     }
 
+    public Map<String, Tabela> zmienNazweTabeli(String staraNazwa, String nowaNazwa) {
+        boolean istniejeTabela = czyIstniejeTabela(staraNazwa);
+        if (!istniejeTabela) {
+            System.out.println("Tabela " + staraNazwa + " nie istnieje");
+            return this.zbiorTabel;
+        }
+
+        // istnieje
+        Tabela tabela = new Tabela();
+        tabela = this.zbiorTabel.get(staraNazwa);
+
+        this.zbiorTabel.remove(staraNazwa);
+        this.zbiorTabel.put(nowaNazwa, tabela);
+
+        return this.zbiorTabel;
+    }
+
     private boolean czyIstniejeTabela(String nazwaTabeli) {
         Set<String> zbiorTabelKeys = zbiorTabel.keySet();
         for (String zbiorTabelKey : zbiorTabelKeys) {
@@ -84,5 +154,11 @@ public class ZbiorTabel {
         }
 
         return false;
+    }
+
+    private void wypiszWszystkieDostepneNazwyTabel() {
+        Set<String> nazwyTabel = zbiorTabel.keySet();
+        System.out.println("Wszystkie nazwy tabel znajduja sie pozniej");
+        System.out.println(nazwyTabel);
     }
 }

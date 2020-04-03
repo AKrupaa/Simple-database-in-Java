@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
+import java.util.Map.Entry;
 
 public class Tabela {
     // ~~ nazwaKolumny, zawartoscTejKolumny ~~ tabela
@@ -96,6 +97,13 @@ public class Tabela {
         System.out.println(tabelaKeys);
     }
 
+    public void wypiszWszystkieKolumnyWrazZZawaroscia() {
+        Set<Entry<String, List<String>>> entires = tabela.entrySet();
+        for (Entry<String, List<String>> ent : entires) {
+            System.out.println(ent.getKey() + " ==> " + ent.getValue());
+        }
+    }
+
     // SPRAWNE - nie dotykać
     public void wypiszZawartoscKolumny(String nazwaKolumny) {
 
@@ -118,7 +126,7 @@ public class Tabela {
     }
 
     // SPRAWNE - nie dotykać
-    private boolean znajdzKolumne(String nazwaKolumny) {
+    public boolean znajdzKolumne(String nazwaKolumny) {
         Set<String> tabelaKeys = this.tabela.keySet();
 
         for (String tabelaKey : tabelaKeys) {
@@ -154,7 +162,7 @@ public class Tabela {
     }
 
     // SPRAWNE - nie dotykać
-    private boolean czyZnalezionoKolumneOrazCzyNieJestPusta(String nazwaKolumny) throws Exception {
+    public boolean czyZnalezionoKolumneOrazCzyNieJestPusta(String nazwaKolumny) throws Exception {
         // znaleziono ale jest pusta
         if (znajdzKolumne(nazwaKolumny) && czyZawartoscKolumnyJestPusta(nazwaKolumny))
             throw new Exception("Zawartosc kolumny " + nazwaKolumny + " jest akutalnie pusta");

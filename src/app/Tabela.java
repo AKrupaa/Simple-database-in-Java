@@ -134,7 +134,7 @@ public class Tabela {
         Set<String> tabelaKeys = this.tabela.keySet();
         int counter = 0;
         for (String tabelaKey : tabelaKeys) {
-            if (tabelaKey == nazwaKolumny) {
+            if (tabelaKey.compareTo(nazwaKolumny) == 0) {
                 counter = counter + 1;
             }
         }

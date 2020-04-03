@@ -13,6 +13,48 @@ public class ZbiorTabel {
         this.zbiorTabel = new TreeMap<>();
     }
 
+    public Map<String, Tabela> update(String nazwaTabeli) throws Exception {
+        boolean istniejeTabela = czyIstniejeTabela(nazwaTabeli);
+        if (!istniejeTabela) {
+            wypiszWszystkieDostepneNazwyTabel();
+            throw new Exception("Tabela o nazwie: " + nazwaTabeli + " nie istnieje!");
+        }
+
+        if (zbiorTabel.get(nazwaTabeli) == null) {
+            wypiszWszystkieDostepneNazwyTabel();
+            throw new Exception("Tabela o nazwie: " + nazwaTabeli + " nie posiada kolumn!");
+        }
+
+        Tabela tabela = new Tabela();
+        tabela = zbiorTabel.get(nazwaTabeli);
+        tabela.wypiszWszystkieKolumny();
+
+        System.out.println("Wprowadz nazwe kolumny: ");
+        String nazwaKolumny = scanner.nextLine();
+
+        while (true) {
+            System.out.println("Wprowadz wartosc: ");
+            String wartosc = scanner.nextLine();
+
+            try {
+                tabela.dodajWartoscDoKolumny(nazwaKolumny, wartosc);
+                this.zbiorTabel.put(nazwaTabeli, tabela);
+            } catch (Exception e) {
+                System.out.println(e.getMessage());
+                break;
+            }
+
+            System.out.println("Czy chcesz wprowadzic kolejna wartosc? 'tak' 'nie'");
+            String decyzja = scanner.nextLine();
+            if (decyzja.compareTo("tak") == 0) {
+                continue;
+            }
+            if (decyzja.compareTo("nie") == 0)
+                break;
+        }
+
+        return this.zbiorTabel;
+    }
 
     public Map<String, Tabela> insert(String nazwaTabeli) throws Exception {
         boolean istniejeTabela = czyIstniejeTabela(nazwaTabeli);
@@ -21,39 +63,38 @@ public class ZbiorTabel {
             throw new Exception("Tabela o nazwie: " + nazwaTabeli + " nie istnieje!");
         }
 
-        if(zbiorTabel.get(nazwaTabeli) == null) {
+        if (zbiorTabel.get(nazwaTabeli) == null) {
             wypiszWszystkieDostepneNazwyTabel();
             throw new Exception("Tabela o nazwie: " + nazwaTabeli + " nie posiada kolumn!");
         }
 
         Tabela tabela = new Tabela();
         tabela = zbiorTabel.get(nazwaTabeli);
+        System.out.println("Akutalna zawartosc: ");
         tabela.wypiszWszystkieKolumnyWrazZZawaroscia();
 
-        System.out.println("Wprowadz nazwe tabeli aby dodac wartosci");
-        String decyzja = scanner.nextLine();
-        boolean czyIstniejeKolumna = tabela.znajdzKolumne(decyzja);
+        System.out.println("Wprowadz nazwe kolumny: ");
+        String nazwaKolumny = scanner.nextLine();
 
-        if(!czyIstniejeKolumna){
-            throw new Exception("Nie istnieje taka tabela");
-        }
-
-        while(true) {
-            System.out.println("Wprowadz wartosc ");
+        while (true) {
+            System.out.println("Wprowadz wartosc, ktora chcesz dodac: ");
             String wartosc = scanner.nextLine();
-            tabela.dodajWartoscDoKolumny(decyzja, wartosc);
+            try {
+                tabela.dodajWartoscDoKolumny(nazwaKolumny, wartosc);
+                this.zbiorTabel.put(nazwaKolumny, tabela);
+            } catch (Exception e) {
+                System.out.println(e.getMessage());
+            }
 
             System.out.println("Wprowadzic kolejna wartosc? 'tak' 'nie'");
 
             String wprowadzic = scanner.nextLine();
-            if (wprowadzic.compareTo("tak") == 0){
+            if (wprowadzic.compareTo("tak") == 0) {
                 continue;
             }
             if (wprowadzic.compareTo("nie") == 0)
                 break;
         }
-
-        this.zbiorTabel.put(nazwaTabeli, tabela);
 
         return this.zbiorTabel;
     }
@@ -65,23 +106,23 @@ public class ZbiorTabel {
             throw new Exception("Tabela o nazwie: " + nazwaTabeli + " nie istnieje!");
         }
 
-        if(zbiorTabel.get(nazwaTabeli) == null) {
+        if (zbiorTabel.get(nazwaTabeli) == null) {
             wypiszWszystkieDostepneNazwyTabel();
             throw new Exception("Tabela o nazwie: " + nazwaTabeli + " nie posiada kolumn!");
         }
         // istnieje
         Tabela tabela = new Tabela();
         tabela = zbiorTabel.get(nazwaTabeli);
-        
+
         System.out.println("Wypisać wszystkie kolumny? 'k' Wypisać cala zawartosc? 'z'");
         String decyzja = scanner.nextLine();
-        if (decyzja.compareTo("k") == 0){
+        if (decyzja.compareTo("k") == 0) {
             tabela.wypiszWszystkieKolumny();
         }
         if (decyzja.compareTo("z") == 0)
             tabela.wypiszWszystkieKolumnyWrazZZawaroscia();
 
-        if(decyzja.compareTo("k") != 0 || decyzja.compareTo("z") != 0) {
+        if (decyzja.compareTo("k") != 0 && decyzja.compareTo("z") != 0) {
             System.out.println("Nie podjeto zadnych dzialan");
         }
     }
@@ -94,7 +135,7 @@ public class ZbiorTabel {
         // istnieje
         System.out.println("Czy usunac cala tabele? Wpisz 'tak' lub 'nie' jezeli chcesz zrezygnowac.");
         String decyzja = scanner.nextLine();
-        if (decyzja.compareTo("tak") == 0){
+        if (decyzja.compareTo("tak") == 0) {
             this.zbiorTabel.remove(nazwaTabeli);
             System.out.println("Usunieto tabele: " + nazwaTabeli);
         }
@@ -117,12 +158,11 @@ public class ZbiorTabel {
                 System.out.print("Podaj nazwe kolumny: ");
                 nazwaKolumny = scanner.nextLine();
                 tabela.dodajKolumne(nazwaKolumny);
-                System.out.println("Czy dodac kolejna kolumne? Wpisz 'tak'");
-                System.out.println("Jezeli chcesz wyjsc wpisz - 'wyjdz'");
+                System.out.println("Czy dodac kolejna kolumne? Wpisz 'tak' 'nie'");
                 String decyzja = scanner.nextLine();
                 if (decyzja.compareTo("tak") == 0)
                     continue;
-                if (decyzja.compareTo("wyjdz") == 0)
+                if (decyzja.compareTo("nie") == 0)
                     break;
             }
             zbiorTabel.put(nazwaTabeli, tabela);

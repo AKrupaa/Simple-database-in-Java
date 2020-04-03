@@ -31,7 +31,7 @@ public class Tabela {
     }
 
     // SPRAWNE - nie dotykać
-    public void dodajWartoscDoKolumny(String nazwaKolumny, String wartosc) {
+    public void dodajWartoscDoKolumny(String nazwaKolumny, String wartosc) throws Exception {
         boolean znalezionoKolumne = znajdzKolumne(nazwaKolumny);
         boolean zawartoscKolumnyJestPusta = czyZawartoscKolumnyJestPusta(nazwaKolumny);
 
@@ -48,7 +48,7 @@ public class Tabela {
                 this.tabela.put(nazwaKolumny, zawartoscKolumny);
             }
         } else {
-            System.out.println("Nie znaleziono kolumny: " + nazwaKolumny);
+            throw new Exception("Nie znaleziono kolumny: " + nazwaKolumny);
         }
     }
 

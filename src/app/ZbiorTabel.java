@@ -67,9 +67,9 @@ public class ZbiorTabel {
                 System.out.println("Czy dodac kolejna kolumne? Wpisz 'tak'");
                 System.out.println("Jezeli chcesz wyjsc wpisz - 'wyjdz'");
                 String decyzja = scanner.nextLine();
-                if (decyzja == "tak")
+                if (decyzja.compareTo("tak") == 0)
                     continue;
-                if (decyzja == "wyjdz")
+                if (decyzja.compareTo("wyjdz") == 0)
                     break;
             }
             zbiorTabel.put(nazwaTabeli, tabela);

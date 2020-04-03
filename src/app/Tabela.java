@@ -122,7 +122,7 @@ public class Tabela {
         Set<String> tabelaKeys = this.tabela.keySet();
 
         for (String tabelaKey : tabelaKeys) {
-            if (tabelaKey == nazwaKolumny) {
+            if (tabelaKey.compareTo(nazwaKolumny) == 0) {
                 return true;
             }
         }

@@ -1,172 +1,193 @@
 package app;
 
+import java.util.ArrayList;
 import java.util.Map;
-import java.util.Scanner;
 import java.util.Set;
 import java.util.TreeMap;
+import java.util.Map.Entry;
 
 public class ZbiorTabel {
     private Map<String, Tabela> zbiorTabel;
-    private Scanner scanner = new Scanner(System.in);
 
     public ZbiorTabel() {
         this.zbiorTabel = new TreeMap<>();
     }
 
-    public Map<String, Tabela> update(String nazwaTabeli) throws Exception {
-        boolean istniejeTabela = czyIstniejeTabela(nazwaTabeli);
-        if (!istniejeTabela) {
-            wypiszWszystkieDostepneNazwyTabel();
-            throw new Exception("Tabela o nazwie: " + nazwaTabeli + " nie istnieje!");
-        }
-
-        if (zbiorTabel.get(nazwaTabeli) == null) {
-            wypiszWszystkieDostepneNazwyTabel();
-            throw new Exception("Tabela o nazwie: " + nazwaTabeli + " nie posiada kolumn!");
-        }
-
-        Tabela tabela = new Tabela();
-        tabela = zbiorTabel.get(nazwaTabeli);
-        tabela.wypiszWszystkieKolumny();
-
-        System.out.println("Wprowadz nazwe kolumny: ");
-        String nazwaKolumny = scanner.nextLine();
-
-        while (true) {
-            System.out.println("Wprowadz wartosc: ");
-            String wartosc = scanner.nextLine();
-
+    public void syntaxHandler(String command) {
+        if (command.startsWith("CREATE TABLE ")) {
             try {
-                tabela.dodajWartoscDoKolumny(nazwaKolumny, wartosc);
-                this.zbiorTabel.put(nazwaTabeli, tabela);
+                create(command);
             } catch (Exception e) {
                 System.out.println(e.getMessage());
-                break;
             }
 
-            System.out.println("Czy chcesz wprowadzic kolejna wartosc? 'tak' 'nie'");
-            String decyzja = scanner.nextLine();
-            if (decyzja.compareTo("tak") == 0) {
+        } else if (command.startsWith("DELETE")) {
+            delete(command);
+        } else if (command.startsWith("SELECT ")) {
+            select(command);
+        } else if (command.startsWith("UPDATE ")) {
+            update(command);
+        }
+    }
+
+    public void create(String komenda) throws Exception {
+        // CREATE TABLE table_name (
+        // column1,
+        // column2,
+        // column3,
+        // ....
+        // );
+
+        // SYNTAX wlasciwy + spacja "CREATE_TABLE_"
+        komenda = komenda.substring(13);
+        char[] zbiorSymboli = komenda.toCharArray();
+
+        boolean wystapilaNazwaTablicy = false;
+        boolean wystapilNawiasOtwierajacy = false;
+        boolean wystapilNawiasZamykajacy = false;
+
+        ArrayList<String> zbiorNazwKolumn = new ArrayList<String>();
+        String nazwaTablicy = "";
+        boolean tempZmieniony = false;
+        String temp = "";
+
+        // CREATE SYNTAX CHECKER
+        for (int i = 0; i < zbiorSymboli.length; i++) {
+
+            if (i == zbiorSymboli.length - 1) {
+                if (zbiorSymboli[i] != ';')
+                    throw new Exception("Błąd składni, oczekiwano ');'");
+                if (wystapilNawiasOtwierajacy == false || wystapilNawiasZamykajacy == false)
+                    throw new Exception("Błąd składni, oczekiwano '(...);'");
+            }
+
+            // wystapil po raz drugi symbol '('
+            if (zbiorSymboli[i] == '(' && wystapilNawiasOtwierajacy == true)
+                throw new Exception("Błąd składni, '(' pojawił się dwukrotnie!");
+
+            // wystapil po raz drugi symbol ')'
+            if (zbiorSymboli[i] == ')' && wystapilNawiasZamykajacy == true)
+                throw new Exception("Błąd składni, ')' pojawił się dwukrotnie!");
+
+            // szukamy nazwy tablicy
+            if (wystapilaNazwaTablicy == false) {
+                if (zbiorSymboli[i] == '(') {
+                    wystapilNawiasOtwierajacy = true;
+                    wystapilaNazwaTablicy = true;
+                    // jezeli ktos robi sobie zarty
+                    if (temp.length() > 0) {
+                        nazwaTablicy = temp;
+                        temp = "";
+                        // nie dodawaj '(' do przestrzeni nazw -> JUZ teraz kolumn!
+                        tempZmieniony = true;
+                        continue;
+                    } else
+                        throw new Exception("Wpisz nazwe tablicy!");
+                }
+                // zbieraj nazwe tablicy do paki
+                temp += zbiorSymboli[i];
                 continue;
             }
-            if (decyzja.compareTo("nie") == 0)
-                break;
+
+            if (zbiorSymboli[i] == ')') {
+                if (temp.length() > 0) {
+                    zbiorNazwKolumn.add(temp);
+                }
+                wystapilNawiasZamykajacy = true;
+                if (wystapilNawiasOtwierajacy == false)
+                    throw new Exception("Błąd składni, znak '(' nie pojawił się!");
+                if (i == zbiorSymboli.length - 1)
+                    throw new Exception("Błąd składni, oczekiwano ');'");
+
+                if (zbiorSymboli[i + 1] == ';')
+                    // skladnia OK
+                    break;
+            }
+
+            if (zbiorSymboli[i] == ',') {
+                if (temp.length() > 0) {
+                    zbiorNazwKolumn.add(temp);
+                    temp = "";
+                    continue;
+                } else
+                    throw new Exception("Błąd składni, za dużo przecinków ,,");
+            }
+
+            temp += zbiorSymboli[i];
         }
+        // CREATE SYNTAX CHECKER
+        if(tempZmieniony == false) {
+            throw new Exception("Błąd składni!");
+        }
+
+        // rozgrywka wygrana!
+        temp = "";
+        // po wszystkim i tak kolejne sortowanie wynikow
+        // te SPACJE mnie zabiją
+        nazwaTablicy = nazwaTablicy.replaceAll(" ", "");
+        // System.out.println("Nazwa tablicy: " + nazwaTablicy);
+        // System.out.println("KOLUMNY: ");
+        // for (int i = 0; i < zbiorNazwKolumn.size(); i++) {
+        //     temp = zbiorNazwKolumn.get(i);
+        //     temp = temp.replaceAll(" ", "");
+        //     zbiorNazwKolumn.set(i, temp);
+        //     System.out.println(temp);
+        // }
+
+        // dodaj "sensowne" dane
+        Tabela tabela = new Tabela();
+        for (String string : zbiorNazwKolumn) {
+            tabela.dodajKolumne(string);
+        }
+        // umiesc i elo
+        zbiorTabel.put(nazwaTablicy, tabela);
+        // // wypisz sobie dla fanu, przeciez nie debagujesz
+        // for (Entry<String, Tabela> entry : zbiorTabel.entrySet()) {
+        // System.out.println();
+        // System.out.println("Utworzono tabele o nazwie: " +
+        // entry.getKey().toString());
+        // System.out.println("Kolumny: ");
+        // entry.getValue().wypiszWszystkieKolumny();
+        // System.out.println();
+        // }
+    }
+
+    public void delete(String komenda) {
+        // DELETE FROM table_name WHERE condition;
+
+        // SYNTAX wlasciwy + spacja "DELETE_FROM_"
+        komenda = komenda.substring(12);
+        char[] zbiorSymboli = komenda.toCharArray();
+
+        boolean wystapilaNazwaTablicy = false;
+        boolean wystapil = false;
+        // boolean wystapilNawiasZamykajacy = false;
+
+        ArrayList<String> zbiorNazwKolumn = new ArrayList<String>();
+        String nazwaTablicy = "";
+        String temp = "";
+
+    }
+
+    public Map<String, Tabela> update(String nazwaTabeli) {
+        // UPDATE table_name
+        // SET column1 = value1, column2 = value2, ...
+        // WHERE condition;
+        boolean istniejeTabela = czyIstniejeTabela(nazwaTabeli);
 
         return this.zbiorTabel;
     }
 
     public Map<String, Tabela> insert(String nazwaTabeli) throws Exception {
         boolean istniejeTabela = czyIstniejeTabela(nazwaTabeli);
-        if (!istniejeTabela) {
-            wypiszWszystkieDostepneNazwyTabel();
-            throw new Exception("Tabela o nazwie: " + nazwaTabeli + " nie istnieje!");
-        }
-
-        if (zbiorTabel.get(nazwaTabeli) == null) {
-            wypiszWszystkieDostepneNazwyTabel();
-            throw new Exception("Tabela o nazwie: " + nazwaTabeli + " nie posiada kolumn!");
-        }
-
-        Tabela tabela = new Tabela();
-        tabela = zbiorTabel.get(nazwaTabeli);
-        System.out.println("Akutalna zawartosc: ");
-        tabela.wypiszWszystkieKolumnyWrazZZawaroscia();
-
-        System.out.println("Wprowadz nazwe kolumny: ");
-        String nazwaKolumny = scanner.nextLine();
-
-        while (true) {
-            System.out.println("Wprowadz wartosc, ktora chcesz dodac: ");
-            String wartosc = scanner.nextLine();
-            try {
-                tabela.dodajWartoscDoKolumny(nazwaKolumny, wartosc);
-                this.zbiorTabel.put(nazwaKolumny, tabela);
-            } catch (Exception e) {
-                System.out.println(e.getMessage());
-            }
-
-            System.out.println("Wprowadzic kolejna wartosc? 'tak' 'nie'");
-
-            String wprowadzic = scanner.nextLine();
-            if (wprowadzic.compareTo("tak") == 0) {
-                continue;
-            }
-            if (wprowadzic.compareTo("nie") == 0)
-                break;
-        }
-
         return this.zbiorTabel;
     }
 
-    public void select(String nazwaTabeli) throws Exception {
+    public void select(String nazwaTabeli) {
+        // SELECT column1, column2, ...
+        // FROM table_name;
+        // SELECT * FROM table_name;
         boolean istniejeTabela = czyIstniejeTabela(nazwaTabeli);
-        if (!istniejeTabela) {
-            wypiszWszystkieDostepneNazwyTabel();
-            throw new Exception("Tabela o nazwie: " + nazwaTabeli + " nie istnieje!");
-        }
-
-        if (zbiorTabel.get(nazwaTabeli) == null) {
-            wypiszWszystkieDostepneNazwyTabel();
-            throw new Exception("Tabela o nazwie: " + nazwaTabeli + " nie posiada kolumn!");
-        }
-        // istnieje
-        Tabela tabela = new Tabela();
-        tabela = zbiorTabel.get(nazwaTabeli);
-
-        System.out.println("Wypisać wszystkie kolumny? 'k' Wypisać cala zawartosc? 'z'");
-        String decyzja = scanner.nextLine();
-        if (decyzja.compareTo("k") == 0) {
-            tabela.wypiszWszystkieKolumny();
-        }
-        if (decyzja.compareTo("z") == 0)
-            tabela.wypiszWszystkieKolumnyWrazZZawaroscia();
-
-        if (decyzja.compareTo("k") != 0 && decyzja.compareTo("z") != 0) {
-            System.out.println("Nie podjeto zadnych dzialan");
-        }
-    }
-
-    public Map<String, Tabela> delete(String nazwaTabeli) {
-        // The DELETE statement is used to delete existing records in a table.
-        boolean istniejeTabela = czyIstniejeTabela(nazwaTabeli);
-        if (!istniejeTabela)
-            return this.zbiorTabel;
-        // istnieje
-        System.out.println("Czy usunac cala tabele? Wpisz 'tak' lub 'nie' jezeli chcesz zrezygnowac.");
-        String decyzja = scanner.nextLine();
-        if (decyzja.compareTo("tak") == 0) {
-            this.zbiorTabel.remove(nazwaTabeli);
-            System.out.println("Usunieto tabele: " + nazwaTabeli);
-        }
-        if (decyzja.compareTo("nie") == 0)
-            System.out.println("Zrezygnowales");
-
-        return this.zbiorTabel;
-    }
-
-    public void create(String nazwaTabeli) {
-        boolean istniejeTabela = czyIstniejeTabela(nazwaTabeli);
-        if (istniejeTabela) {
-            System.out.println("Tabela o nazwie: " + nazwaTabeli + " juz istnieje!");
-        } else {
-            // nie istnieje tabela
-            // dodajmy kolumny
-            Tabela tabela = new Tabela();
-            while (true) {
-                String nazwaKolumny;
-                System.out.print("Podaj nazwe kolumny: ");
-                nazwaKolumny = scanner.nextLine();
-                tabela.dodajKolumne(nazwaKolumny);
-                System.out.println("Czy dodac kolejna kolumne? Wpisz 'tak' 'nie'");
-                String decyzja = scanner.nextLine();
-                if (decyzja.compareTo("tak") == 0)
-                    continue;
-                if (decyzja.compareTo("nie") == 0)
-                    break;
-            }
-            zbiorTabel.put(nazwaTabeli, tabela);
-        }
     }
 
     public Map<String, Tabela> zmienNazweTabeli(String staraNazwa, String nowaNazwa) {
@@ -201,4 +222,32 @@ public class ZbiorTabel {
         System.out.println("Wszystkie nazwy tabel znajduja sie pozniej");
         System.out.println(nazwyTabel);
     }
+
+    private void wypiszTabliceStringow(String[] strings) {
+        for (String string : strings) {
+            System.out.println(string);
+        }
+    }
 }
+
+// // SELECT column1, column2, ...
+// // FROM table_name;
+
+// // SELECT * FROM table_name;
+
+// if(command.startsWith("SELECT"))
+// {
+// System.out.println(command);
+// String[] details = command.split(" ");
+// for (String string : details) {
+// System.out.println(string);
+// }
+
+// int indexOfFROM = details.length - 2;
+// if (details[indexOfFROM].equals("FROM")) {
+// System.out.println("Jest FROM");
+// } else
+// throw new Exception("Syntax error");
+
+// String nazwaTabeli = details[details.length - 1];
+// }

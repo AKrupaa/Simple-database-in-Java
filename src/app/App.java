@@ -1,18 +1,21 @@
 package app;
 
+import java.util.Scanner;
+
 public class App {
     public static void main(String[] args) throws Exception {
 
         ZbiorTabel tabele = new ZbiorTabel();
+        Scanner scanner = new Scanner(System.in); // Create a Scanner object
 
-        tabele.create("nazwaTabeli");
-        tabele.select("nazwaTabeli");
+        while (true) {
+            String command = scanner.nextLine();
+            if (command.equals("exit"))
+                break;
+                
+            tabele.syntaxHandler(command);
+        }
 
-        tabele.insert("nazwaTabeli");
-
-        tabele.select("nazwaTabeli");
-        // tabele.create("nazwaTabeli");
-
-        System.out.println("Hello Java");
+        scanner.close();
     }
 }

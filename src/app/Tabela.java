@@ -9,7 +9,7 @@ import java.util.Map.Entry;
 
 public class Tabela {
     // ~~ nazwaKolumny, zawartoscTejKolumny ~~ tabela
-    Map<String, List<String>> tabela;
+    private Map<String, List<String>> tabela;
 
     public Tabela() {
         tabela = new TreeMap<>();
@@ -52,6 +52,24 @@ public class Tabela {
         }
     }
 
+    public void dodajWartosciDoKolumn(String[] zbiorWartosci) {
+        // Set<Entry<String, List<String>>> entry = tabela.entrySet();
+        int i = 0;
+        for (Entry<String, List<String>> entry : tabela.entrySet()) {
+            // dla kazdej kolumny, wez i wstaw, jezeli nie masz co wstawic, wstaw ""
+            List<String> lista = entry.getValue();
+            if (i == zbiorWartosci.length)
+                lista.add("");
+
+            while (i < zbiorWartosci.length) {
+                lista.add(zbiorWartosci[i]);
+                i++;
+                break;
+            }
+            tabela.put(entry.getKey(), lista);
+        }
+    }
+
     // SPRAWNE - nie dotykać
     public Map<String, List<String>> usunKolumne(String nazwaKolumny) {
         if (znajdzKolumne(nazwaKolumny)) {
@@ -90,6 +108,42 @@ public class Tabela {
         return this.tabela;
     }
 
+    public void usunWartosciZKolumn() {
+
+        // Set<Entry<String, List<String>>> entry = tabela.entrySet();
+
+        for (Entry<String, List<String>> entry : tabela.entrySet()) {
+            List<String> nowaZawartoscKolumny = entry.getValue();
+            nowaZawartoscKolumny.clear();
+            tabela.put(entry.getKey(), nowaZawartoscKolumny);
+        }
+    }
+
+    public void usunWiersz(String kolumna, String wartosc) throws Exception {
+        boolean istnieje = sprawdzCzyJuzIstniejeKolumna(kolumna);
+        if (istnieje == false)
+            throw new Exception("Nie istnieje taka kolumna " + kolumna);
+
+        boolean zawiera = false;
+        int indexOfValue = 0;
+        List<String> zawartoscKolumny = tabela.get(kolumna);
+        for (String string : zawartoscKolumny) {
+            if (string.equals(wartosc)) {
+                zawiera = true;
+                break;
+            }
+            indexOfValue++;
+        }
+
+        if (zawiera == true) {
+            for (Entry<String, List<String>> entry : tabela.entrySet()) {
+                List<String> nowaZawartoscKolumny = entry.getValue();
+                nowaZawartoscKolumny.remove(indexOfValue);
+                tabela.put(entry.getKey(), nowaZawartoscKolumny);
+            }
+        }
+    }
+
     // SPRAWNE - nie dotykać
     public void wypiszWszystkieKolumny() {
         System.out.println("Wszystkie dostępne kolumny");
@@ -123,6 +177,81 @@ public class Tabela {
             System.out.println(e.getMessage());
         }
 
+    }
+
+    public void wypiszKolumnyZTablicyGdzieKolumnaSpelniaWarunek(String[] zbiorKolumn, String[] warunekKolumnaWartosc) {
+        
+        // wcale nie robię niezrozumiałych zagnieżdżeń
+        
+        boolean wypiszWszystkieKolumny = false;
+        for (String kolumna : zbiorKolumn) {
+            if (kolumna.equals("*")) {
+                wypiszWszystkieKolumny = true;
+                break;
+            }
+        }
+
+        if (wypiszWszystkieKolumny == true) {
+            // wypisz wszystkie kolumny, ale tylko rzad gdzie wystapil ten ... warunek
+            String warunekKolumna = warunekKolumnaWartosc[0];
+            String warunekWartosc = warunekKolumnaWartosc[1];
+
+            // poszczegolne kolumny do wypisania
+            // for (String kolumna : zbiorKolumn) {
+            // kolumny
+            if (tabela.containsKey(warunekKolumna)) {
+                // posiada taka kolumne gdzie nalezy sprawdzic warunek
+                // pobierz zawartosc kolumny
+                List<String> zawartoscKolumny = tabela.get(warunekKolumna);
+                int index = 0;
+                // dopoki nie wyszedles ze ZBIORU WARTOSCI DANEJ KOLUMNY
+                while (index < zawartoscKolumny.size())
+                    // jezeli kolumna Y posiada wartosc X ( Imie ?= Arkadiusz )
+                    // na miejscu index
+                    if (zawartoscKolumny.get(index).equals(warunekWartosc)) {
+                        // wypisz teraz wszystkie rzedy, wlacznie z nazwami ... kolumn
+                        // Set<Entry<String, List<String>>> entry = tabela.entrySet();
+                        for (Entry<String, List<String>> ent : tabela.entrySet()) {
+                            // System.out.println(ent.getKey() + " ==> " + ent.getValue());
+                            // wypisz wszystkie kolumny, ale tylko rzad gdzie wystapil ten ... warunek
+                            System.out.println("Kolumna: " + ent.getKey() + " ==> " + ent.getValue().get(index));
+                        }
+                    }
+                index++;
+            }
+            // }
+        } else {
+            // wypisz TYLKO poszczegolne KOLUMNY oraz RZEDY
+            // lalalalalalaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+
+            String warunekKolumna = warunekKolumnaWartosc[0];
+            String warunekWartosc = warunekKolumnaWartosc[1];
+            // poszczegolne kolumny do wypisania
+            for (String kolumna : zbiorKolumn) {
+                if (tabela.containsKey(warunekKolumna)) {
+                    // posiada taka kolumne gdzie nalezy sprawdzic warunek
+                    // pobierz zawartosc kolumny
+                    List<String> zawartoscKolumny = tabela.get(warunekKolumna);
+                    int index = 0;
+                    // dopoki nie wyszedles ze ZBIORU WARTOSCI DANEJ KOLUMNY
+                    while (index < zawartoscKolumny.size())
+                        // jezeli kolumna Y posiada wartosc X ( Imie ?= Arkadiusz )
+                        // na miejscu index
+                        if (zawartoscKolumny.get(index).equals(warunekWartosc)) {
+                            // wypisz teraz wszystkie rzedy, wlacznie z nazwami ... kolumn
+                            // Set<Entry<String, List<String>>> entry = tabela.entrySet();
+                            for (Entry<String, List<String>> ent : tabela.entrySet()) {
+                                // System.out.println(ent.getKey() + " ==> " + ent.getValue());
+                                // wypisz WYBRANE kolumny, ale tylko rzad gdzie wystapil ten ... warunek
+                                // lalala.
+                                if (ent.getKey().equals(kolumna))
+                                    System.out.println("Kolumna: " + ent.getKey() + " ==> " + ent.getValue().get(index));
+                            }
+                        }
+                    index++;
+                }
+            }
+        }
     }
 
     // SPRAWNE - nie dotykać

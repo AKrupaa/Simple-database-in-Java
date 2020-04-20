@@ -216,8 +216,9 @@ public class Tabela {
                             // wypisz wszystkie kolumny, ale tylko rzad gdzie wystapil ten ... warunek
                             System.out.println("Kolumna: " + ent.getKey() + " ==> " + ent.getValue().get(index));
                         }
+                        index++;
                     }
-                index++;
+
             }
             // }
         } else {
@@ -247,8 +248,9 @@ public class Tabela {
                                 if (ent.getKey().equals(kolumna))
                                     System.out.println("Kolumna: " + ent.getKey() + " ==> " + ent.getValue().get(index));
                             }
+                            index++;
                         }
-                    index++;
+//                    index++;
                 }
             }
         }

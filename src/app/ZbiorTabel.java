@@ -38,6 +38,12 @@ public class ZbiorTabel {
             } catch (Exception e) {
                 System.out.println(e.getMessage());
             }
+        } else if (command.startsWith("UPDATE ")) {
+            try {
+                update(command);
+            } catch (Exception e) {
+                System.out.println(e.getMessage());
+            }
         }
     }
 
@@ -388,8 +394,6 @@ public class ZbiorTabel {
         zbiorTabel.put(nazwaTablicy, tabela);
     }
 
-    // działa częściowo, przy WHERE robi inf loop 
-    // TODO: do poprawy WHERE
     public void select(String komenda) throws Exception {
         // SELECT column1, column2, ...
         // FROM table_name;
@@ -480,6 +484,7 @@ public class ZbiorTabel {
         String[] zbiorKolumn = kolumny.replaceAll(" ", "").split(",");
         String[] warunekKolumnaWartosc = warunek.replaceAll(" ", "").split("=");
 
+        // SELECT co WHERE warunek
         if (wystapilWHERE == true) {
             if (warunek.contains("=") == false)
                 throw new Exception("Warunek musi skladac się z kolumna = tresc");
@@ -502,11 +507,113 @@ public class ZbiorTabel {
         }
     }
 
-    public Map<String, Tabela> update(String nazwaTabeli) {
+    public Map<String, Tabela> update(String komenda) throws Exception {
+        // UPDATE table_name
+        // SET column1 = value1, column2 = value2, ...;
+
         // UPDATE table_name
         // SET column1 = value1, column2 = value2, ...
         // WHERE condition;
-        boolean istniejeTabela = czyIstniejeTabela(nazwaTabeli);
+
+        komenda = komenda.substring(7);
+        char[] zbiorSymboli = komenda.toCharArray();
+
+        boolean wystapilaNazwaTablicy = false;
+        boolean wystapilSET = false;
+        boolean wystapilyKolumnaWartosc = false;
+        boolean wystapilWHERE = false;
+        boolean wystapilaZmiana = false;
+
+        String temp = "";
+        String nazwaTablicy = "";
+        String trescSet = "";
+        String warunek = "";
+
+        // UPDATE SYNTAX CHECKER
+        for (int i = 0; i < zbiorSymboli.length; i++) {
+            // ; - wyjscie
+            if (i == zbiorSymboli.length - 1 || zbiorSymboli[i] == ';') {
+                if (zbiorSymboli[i] != ';')
+                    throw new Exception("Oczekiwano ';'");
+                else {
+                    // to średnik ; i jest sens sprawdzac
+                    if (wystapilSET == true & wystapilWHERE == true) {
+                        if (temp.matches(".*[a-z].*")) {
+                            // tu jest caly ten WHERE condition
+                            warunek = temp; // bez srednika, bo na srednik sprawdzasz ta czesc kodu
+                            wystapilaZmiana = true;
+                            break;
+                        } else
+                            throw new Exception("Wprowadz warunek");
+                    }
+                    // sam SET columna0 = wartosc0 , columna1 = wartosc1
+                    if (wystapilaNazwaTablicy == true) {
+                        if (temp.contains("=") == true && temp.length() > 2) {
+                            wystapilyKolumnaWartosc = true;
+                            trescSet = temp; // bez srednika
+                            wystapilaZmiana = true;
+                            break;
+                        } else
+                            throw new Exception("Wprowadz 'SET kolumna0 = wartosc0;'");
+                    }
+                }
+            }
+
+            if (temp.contains(" SET")) {
+                if (wystapilSET == true)
+                    throw new Exception("Błąd składni, dwukrotne wystąpienie SET!");
+                wystapilSET = true;
+                nazwaTablicy = temp.substring(0, temp.length() - 4);
+                if (nazwaTablicy.matches(".*[a-z].*")) {
+                    wystapilaNazwaTablicy = true;
+                    temp = "";
+                    continue;
+                } else
+                    throw new Exception("Nazwa tablicy nie zawiera liter");
+            }
+
+            if (temp.contains(" WHERE")) {
+                if (wystapilWHERE == true)
+                    throw new Exception("Błąd składni, dwukrotne wystąpienie WHERE!");
+
+                wystapilWHERE = true;
+                trescSet = temp.substring(0, temp.length() - 6);
+                if (temp.contains("=") == true && temp.length() > 2) {
+                    wystapilyKolumnaWartosc = true;
+                    temp = "";
+                    continue;
+                } else
+                    throw new Exception("Brak 'SET columna = value;'");
+            }
+
+            temp += zbiorSymboli[i];
+        }
+
+        if (wystapilaZmiana == false)
+            throw new Exception("Błąd składni!");
+
+        // TODO: odkomentuj to potem, to ponizej...
+        // if (czyIstniejeTabela(nazwaTablicy) == false)
+        // throw new Exception("Nie ma takiej tablicy");
+
+        // jest jakas skladnia ^^ porazka
+        nazwaTablicy = nazwaTablicy.replaceAll(" ", "");
+
+        String[] setKolumnaWartosc = trescSet.replaceAll(" ", "").split(",");
+        String[] warunekKolumnaWartosc = warunek.replaceAll(" ", "").split("=");
+
+        temp = "";
+
+        for (String string : setKolumnaWartosc) {
+            if (string.contains("=") == false)
+                throw new Exception("Błąd składni, miało być 'SET kolumna = wartosc'");
+        }
+
+        if (warunekKolumnaWartosc.length < 2) {
+            ;
+        }
+
+        //TODO: tu gdzies skonczylem, denerwuje sie zbednie
 
         return this.zbiorTabel;
     }
